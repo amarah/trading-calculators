@@ -67,5 +67,67 @@
     return { straddle, impliedMove, average, sampleStdDev, exceedance: null };
   }
 
-  return { sizePosition, earningsSummary };
+  function erf(value) {
+    const sign = value < 0 ? -1 : 1;
+    const x = Math.abs(value);
+    const t = 1 / (1 + 0.3275911 * x);
+    return sign * (1 - (((((1.061405429 * t - 1.453152027) * t + 1.421413741) * t
+      - 0.284496736) * t + 0.254829592) * t) * Math.exp(-x * x));
+  }
+
+  function normalCdf(value) {
+    return 0.5 * (1 + erf(value / Math.SQRT2));
+  }
+
+  function optionPrice({ type, spot, strike, years, rate = 0, dividendYield = 0, volatility }) {
+    const rootTime = Math.sqrt(years);
+    const d1 = (Math.log(spot / strike) + (rate - dividendYield + volatility ** 2 / 2) * years)
+      / (volatility * rootTime);
+    const d2 = d1 - volatility * rootTime;
+    return type === 'call'
+      ? spot * Math.exp(-dividendYield * years) * normalCdf(d1)
+        - strike * Math.exp(-rate * years) * normalCdf(d2)
+      : strike * Math.exp(-rate * years) * normalCdf(-d2)
+        - spot * Math.exp(-dividendYield * years) * normalCdf(-d1);
+  }
+
+  function impliedVolatility({ type, spot, strike, days, ratePercent = 0,
+    dividendYieldPercent = 0, premium }) {
+    spot = finiteNumber(spot, 'Stock price');
+    strike = finiteNumber(strike, 'Strike');
+    days = finiteNumber(days, 'Days to expiry');
+    premium = finiteNumber(premium, 'Option premium');
+    const rate = finiteNumber(ratePercent, 'Risk-free rate') / 100;
+    const dividendYield = finiteNumber(dividendYieldPercent, 'Dividend yield') / 100;
+    if (!['call', 'put'].includes(type)) throw new Error('Option type must be call or put.');
+    if (spot <= 0 || strike <= 0 || days <= 0 || premium < 0) {
+      throw new Error('Stock price, strike, and time must be positive; premium cannot be negative.');
+    }
+    const years = days / 365;
+    const discountedSpot = spot * Math.exp(-dividendYield * years);
+    const discountedStrike = strike * Math.exp(-rate * years);
+    const lower = type === 'call'
+      ? Math.max(0, discountedSpot - discountedStrike)
+      : Math.max(0, discountedStrike - discountedSpot);
+    const upper = type === 'call' ? discountedSpot : discountedStrike;
+    const tolerance = 1e-8;
+    if (premium < lower - tolerance || premium > upper + tolerance) {
+      throw new Error(`Premium must be between ${lower.toFixed(2)} and ${upper.toFixed(2)}.`);
+    }
+    let lowVol = 0.0001;
+    let highVol = 5;
+    const highPrice = optionPrice({ type, spot, strike, years, rate, dividendYield, volatility: highVol });
+    if (premium > highPrice + tolerance) {
+      throw new Error('Implied volatility is above the 500% search limit.');
+    }
+    for (let index = 0; index < 80; index += 1) {
+      const volatility = (lowVol + highVol) / 2;
+      const price = optionPrice({ type, spot, strike, years, rate, dividendYield, volatility });
+      if (price > premium) highVol = volatility;
+      else lowVol = volatility;
+    }
+    return (lowVol + highVol) / 2;
+  }
+
+  return { sizePosition, earningsSummary, optionPrice, impliedVolatility };
 });
