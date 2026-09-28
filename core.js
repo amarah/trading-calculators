@@ -4,6 +4,11 @@
   else root.TradingCalc = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   function finiteNumber(value, name) {
+    if (value === null || typeof value === 'boolean' ||
+        (typeof value !== 'number' && typeof value !== 'string') ||
+        (typeof value === 'string' && value.trim() === '')) {
+      throw new Error(`${name} is required and must be a number.`);
+    }
     const number = Number(value);
     if (!Number.isFinite(number)) throw new Error(`${name} must be a number.`);
     return number;
@@ -27,6 +32,9 @@
     }
     const riskPerShare = Math.abs(entry - stop);
     if (riskPerShare === 0) throw new Error('Entry and stop prices must be different.');
+    if ((stop < entry && target <= entry) || (stop > entry && target >= entry)) {
+      throw new Error('Target must be above entry for a long trade or below entry for a short trade.');
+    }
     const riskBudget = account * riskPercent / 100;
     const allocationBudget = account * maxAllocationPercent / 100;
     const riskShares = Math.floor(riskBudget / riskPerShare);
