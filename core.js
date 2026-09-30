@@ -72,7 +72,8 @@
     const sampleStdDev = moves.length > 1
       ? Math.sqrt(moves.reduce((sum, value) => sum + (value - average) ** 2, 0) / (moves.length - 1)) / 100
       : null;
-    return { straddle, impliedMove, average, sampleStdDev, exceedance: null };
+    const exceedance = moves.filter(value => value / 100 >= impliedMove).length / moves.length;
+    return { straddle, impliedMove, average, sampleStdDev, exceedance };
   }
 
   function erf(value) {

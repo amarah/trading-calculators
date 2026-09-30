@@ -27,6 +27,10 @@ assert.equal(noHistory.average, null);
 const withZero = earningsSummary({ spot: 100, callPrice: 3, putPrice: 2, historicalMoves: [0, 4, 8] });
 assert.equal(withZero.average, 4);
 assert.equal(withZero.sampleStdDev, 0.04);
+assert.equal(withZero.exceedance, 1 / 3);
+
+const empirical = earningsSummary({ spot: 100, callPrice: 3, putPrice: 3, historicalMoves: [5, 6, 7, 10] });
+assert.equal(empirical.exceedance, 0.75);
 
 assert.throws(() => earningsSummary({ spot: 100, callPrice: -1, putPrice: 2 }), /cannot be negative/);
 
