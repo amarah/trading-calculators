@@ -32,4 +32,18 @@ const context = vm.createContext({ TradingCalc: api, document: {
 vm.runInContext(script.replace('addLeg();addLeg();calcOptions();calcRisk();calcEarnings();', ''), context);
 vm.runInContext('calcGreeks()', context);
 assert.match(elements.gResults.innerHTML, /Option premium is required/);
+
+Object.assign(elements, {
+  oType: {value: 'call'}, oSpot: {value: ''}, oK1: {value: '100'}, oP1: {value: '2'},
+  oK2: {value: ''}, oP2: {value: ''}, oQty: {value: '1'}, oResults: {innerHTML: ''}
+});
+vm.runInContext('calcOptions()', context);
+assert.match(elements.oResults.innerHTML, /Stock price is required/);
+
+Object.assign(elements, {
+  oType: {value: 'bear'}, oSpot: {value: '100'}, oK1: {value: '95'}, oP1: {value: '4'},
+  oK2: {value: '105'}, oP2: {value: '1'}, oQty: {value: '1'}, oResults: {innerHTML: ''}
+});
+vm.runInContext('calcOptions()', context);
+assert.match(elements.oResults.innerHTML, /long strike above the short strike/);
 console.log('input validation and page handler regression tests passed');
