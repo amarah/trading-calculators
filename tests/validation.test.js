@@ -46,4 +46,11 @@ Object.assign(elements, {
 });
 vm.runInContext('calcOptions()', context);
 assert.match(elements.oResults.innerHTML, /long strike above the short strike/);
+
+Object.assign(elements, {
+  pDir: {value: 'above'}, pS: {value: '100'}, pBE: {value: '105'}, pIV: {value: ''},
+  pDays: {value: '30'}, pDrift: {value: '0'}, pResults: {innerHTML: ''}
+});
+vm.runInContext('calcPOP()', context);
+assert.match(elements.pResults.innerHTML, /Annualized IV is required/);
 console.log('input validation and page handler regression tests passed');

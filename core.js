@@ -88,6 +88,32 @@
     return 0.5 * (1 + erf(value / Math.SQRT2));
   }
 
+  function probabilityOfProfit({ direction, spot, breakeven, volatilityPercent,
+    days, driftPercent = 0 }) {
+    spot = finiteNumber(spot, 'Stock price');
+    breakeven = finiteNumber(breakeven, 'Breakeven price');
+    const volatility = finiteNumber(volatilityPercent, 'Annualized IV') / 100;
+    days = finiteNumber(days, 'Days to expiry');
+    const drift = finiteNumber(driftPercent, 'Expected drift') / 100;
+    if (!['above', 'below'].includes(direction)) {
+      throw new Error('Profit direction must be above or below.');
+    }
+    if (spot <= 0 || breakeven <= 0 || volatility <= 0 || days <= 0) {
+      throw new Error('Prices, annualized IV, and days to expiry must be greater than zero.');
+    }
+    const years = days / 365;
+    const standardDeviation = volatility * Math.sqrt(years);
+    const z = (Math.log(breakeven / spot) - (drift - volatility ** 2 / 2) * years)
+      / standardDeviation;
+    const probability = direction === 'above' ? 1 - normalCdf(z) : normalCdf(z);
+    return {
+      probability,
+      standardDeviation,
+      rangeLow: spot * Math.exp(-standardDeviation),
+      rangeHigh: spot * Math.exp(standardDeviation)
+    };
+  }
+
   function optionPrice({ type, spot, strike, years, rate = 0, dividendYield = 0, volatility }) {
     const rootTime = Math.sqrt(years);
     const d1 = (Math.log(spot / strike) + (rate - dividendYield + volatility ** 2 / 2) * years)
@@ -138,5 +164,5 @@
     return (lowVol + highVol) / 2;
   }
 
-  return { sizePosition, earningsSummary, optionPrice, impliedVolatility };
+  return { sizePosition, earningsSummary, probabilityOfProfit, optionPrice, impliedVolatility };
 });
