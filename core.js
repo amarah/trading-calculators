@@ -114,6 +114,43 @@
     };
   }
 
+  function findBreakevens(points) {
+    if (!Array.isArray(points) || points.length < 2) return [];
+    const normalized = points.map(point => {
+      if (!Array.isArray(point) || point.length < 2 ||
+          !Number.isFinite(point[0]) || !Number.isFinite(point[1])) {
+        throw new Error('Payoff points must contain finite price and P&L values.');
+      }
+      return [point[0], point[1]];
+    });
+    for (let index = 1; index < normalized.length; index += 1) {
+      if (normalized[index][0] <= normalized[index - 1][0]) {
+        throw new Error('Payoff prices must be strictly increasing.');
+      }
+    }
+    const roots = [];
+    const isZero = value => Math.abs(value) <= 1e-9;
+    const add = value => {
+      const previous = roots[roots.length - 1];
+      if (previous === undefined || Math.abs(value - previous) > 1e-8 * Math.max(1, Math.abs(value))) {
+        roots.push(value);
+      }
+    };
+    for (let index = 0; index < normalized.length; index += 1) {
+      const [price, pnl] = normalized[index];
+      const previousZero = index > 0 && isZero(normalized[index - 1][1]);
+      const nextZero = index + 1 < normalized.length && isZero(normalized[index + 1][1]);
+      if (isZero(pnl) && (!previousZero || !nextZero)) add(price);
+      if (index > 0) {
+        const [previousPrice, previousPnl] = normalized[index - 1];
+        if (!isZero(previousPnl) && !isZero(pnl) && Math.sign(previousPnl) !== Math.sign(pnl)) {
+          add(previousPrice - previousPnl * (price - previousPrice) / (pnl - previousPnl));
+        }
+      }
+    }
+    return roots.sort((left, right) => left - right);
+  }
+
   function optionPrice({ type, spot, strike, years, rate = 0, dividendYield = 0, volatility }) {
     const rootTime = Math.sqrt(years);
     const d1 = (Math.log(spot / strike) + (rate - dividendYield + volatility ** 2 / 2) * years)
@@ -164,5 +201,6 @@
     return (lowVol + highVol) / 2;
   }
 
-  return { sizePosition, earningsSummary, probabilityOfProfit, optionPrice, impliedVolatility };
+  return { sizePosition, earningsSummary, probabilityOfProfit, findBreakevens,
+    optionPrice, impliedVolatility };
 });

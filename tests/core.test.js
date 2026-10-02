@@ -1,5 +1,6 @@
 const assert = require('node:assert/strict');
-const { sizePosition, earningsSummary, probabilityOfProfit, optionPrice, impliedVolatility } = require('../core.js');
+const { sizePosition, earningsSummary, probabilityOfProfit, findBreakevens,
+  optionPrice, impliedVolatility } = require('../core.js');
 
 const capped = sizePosition({ account: 10_000, riskPercent: 1, entry: 100, stop: 99.90, target: 110 });
 assert.equal(capped.riskShares, 1000);
@@ -43,6 +44,11 @@ assert.ok(Math.abs(above.probability + below.probability - 1) < 1e-12);
 assert.ok(above.rangeLow < 100 && above.rangeHigh > 100);
 assert.throws(() => probabilityOfProfit({ direction: 'above', spot: 100, breakeven: 105,
   volatilityPercent: 0, days: 30 }), /greater than zero/);
+
+assert.deepEqual(findBreakevens([[90, -10], [100, 0], [110, 10]]), [100]);
+assert.deepEqual(findBreakevens([[0, -1], [4, 3]]), [1]);
+assert.deepEqual(findBreakevens([[0, 1], [1, 0], [2, 0], [3, -1]]), [1, 2]);
+assert.throws(() => findBreakevens([[1, 1], [1, -1]]), /strictly increasing/);
 
 const premium = optionPrice({ type: 'call', spot: 100, strike: 105, years: 30 / 365,
   rate: 0.04, dividendYield: 0, volatility: 0.35 });
