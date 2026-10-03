@@ -163,6 +163,41 @@
         - spot * Math.exp(-dividendYield * years) * normalCdf(-d1);
   }
 
+  function optionGreeks({ type, spot, strike, days, ratePercent = 0,
+    dividendYieldPercent = 0, volatility }) {
+    spot = finiteNumber(spot, 'Stock price');
+    strike = finiteNumber(strike, 'Strike');
+    days = finiteNumber(days, 'Days to expiry');
+    volatility = finiteNumber(volatility, 'Volatility');
+    const rate = finiteNumber(ratePercent, 'Risk-free rate') / 100;
+    const dividendYield = finiteNumber(dividendYieldPercent, 'Dividend yield') / 100;
+    if (!['call', 'put'].includes(type)) throw new Error('Option type must be call or put.');
+    if (spot <= 0 || strike <= 0 || days <= 0 || volatility <= 0) {
+      throw new Error('Stock price, strike, time, and volatility must be positive.');
+    }
+    const years = days / 365;
+    const rootTime = Math.sqrt(years);
+    const d1 = (Math.log(spot / strike) +
+      (rate - dividendYield + volatility ** 2 / 2) * years) / (volatility * rootTime);
+    const d2 = d1 - volatility * rootTime;
+    const density = Math.exp(-(d1 ** 2) / 2) / Math.sqrt(2 * Math.PI);
+    const spotDiscount = Math.exp(-dividendYield * years);
+    const strikeDiscount = Math.exp(-rate * years);
+    const decay = -(spot * spotDiscount * density * volatility) / (2 * rootTime);
+    const theta = type === 'call'
+      ? decay - rate * strike * strikeDiscount * normalCdf(d2)
+        + dividendYield * spot * spotDiscount * normalCdf(d1)
+      : decay + rate * strike * strikeDiscount * normalCdf(-d2)
+        - dividendYield * spot * spotDiscount * normalCdf(-d1);
+    return {
+      price: optionPrice({ type, spot, strike, years, rate, dividendYield, volatility }),
+      delta: type === 'call' ? spotDiscount * normalCdf(d1) : -spotDiscount * normalCdf(-d1),
+      gamma: spotDiscount * density / (spot * volatility * rootTime),
+      theta,
+      vega: spot * spotDiscount * density * rootTime
+    };
+  }
+
   function impliedVolatility({ type, spot, strike, days, ratePercent = 0,
     dividendYieldPercent = 0, premium }) {
     spot = finiteNumber(spot, 'Stock price');
@@ -202,5 +237,5 @@
   }
 
   return { sizePosition, earningsSummary, probabilityOfProfit, findBreakevens,
-    optionPrice, impliedVolatility };
+    optionPrice, optionGreeks, impliedVolatility };
 });

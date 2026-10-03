@@ -1,6 +1,6 @@
 const assert = require('node:assert/strict');
 const { sizePosition, earningsSummary, probabilityOfProfit, findBreakevens,
-  optionPrice, impliedVolatility } = require('../core.js');
+  optionPrice, optionGreeks, impliedVolatility } = require('../core.js');
 
 const capped = sizePosition({ account: 10_000, riskPercent: 1, entry: 100, stop: 99.90, target: 110 });
 assert.equal(capped.riskShares, 1000);
@@ -49,6 +49,21 @@ assert.deepEqual(findBreakevens([[90, -10], [100, 0], [110, 10]]), [100]);
 assert.deepEqual(findBreakevens([[0, -1], [4, 3]]), [1]);
 assert.deepEqual(findBreakevens([[0, 1], [1, 0], [2, 0], [3, -1]]), [1, 2]);
 assert.throws(() => findBreakevens([[1, 1], [1, -1]]), /strictly increasing/);
+
+const greekInputs = { spot: 100, strike: 105, days: 60, ratePercent: 4,
+  dividendYieldPercent: 2, volatility: 0.3 };
+const callGreeks = optionGreeks({ type: 'call', ...greekInputs });
+const putGreeks = optionGreeks({ type: 'put', ...greekInputs });
+assert.ok(Math.abs(callGreeks.delta - putGreeks.delta -
+  Math.exp(-0.02 * 60 / 365)) < 1e-7);
+const years = greekInputs.days / 365;
+const step = 1e-5;
+const priceAt = time => optionPrice({ type: 'call', spot: greekInputs.spot,
+  strike: greekInputs.strike, years: time, rate: 0.04, dividendYield: 0.02,
+  volatility: greekInputs.volatility });
+const numericalTheta = (priceAt(years - step) - priceAt(years + step)) / (2 * step);
+assert.ok(Math.abs(callGreeks.theta - numericalTheta) < 1e-4);
+assert.throws(() => optionGreeks({ type: 'call', ...greekInputs, volatility: 0 }), /positive/);
 
 const premium = optionPrice({ type: 'call', spot: 100, strike: 105, years: 30 / 365,
   rate: 0.04, dividendYield: 0, volatility: 0.35 });
