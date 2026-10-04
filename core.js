@@ -152,6 +152,16 @@
   }
 
   function optionPrice({ type, spot, strike, years, rate = 0, dividendYield = 0, volatility }) {
+    spot = finiteNumber(spot, 'Stock price');
+    strike = finiteNumber(strike, 'Strike');
+    years = finiteNumber(years, 'Time to expiry');
+    rate = finiteNumber(rate, 'Risk-free rate');
+    dividendYield = finiteNumber(dividendYield, 'Dividend yield');
+    volatility = finiteNumber(volatility, 'Volatility');
+    if (!['call', 'put'].includes(type)) throw new Error('Option type must be call or put.');
+    if (spot <= 0 || strike <= 0 || years <= 0 || volatility <= 0) {
+      throw new Error('Stock price, strike, time, and volatility must be positive.');
+    }
     const rootTime = Math.sqrt(years);
     const d1 = (Math.log(spot / strike) + (rate - dividendYield + volatility ** 2 / 2) * years)
       / (volatility * rootTime);

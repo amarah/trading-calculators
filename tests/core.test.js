@@ -64,6 +64,10 @@ const priceAt = time => optionPrice({ type: 'call', spot: greekInputs.spot,
 const numericalTheta = (priceAt(years - step) - priceAt(years + step)) / (2 * step);
 assert.ok(Math.abs(callGreeks.theta - numericalTheta) < 1e-4);
 assert.throws(() => optionGreeks({ type: 'call', ...greekInputs, volatility: 0 }), /positive/);
+assert.throws(() => optionPrice({ type: 'other', spot: 100, strike: 100,
+  years: 1, volatility: 0.2 }), /call or put/);
+assert.throws(() => optionPrice({ type: 'call', spot: 100, strike: 100,
+  years: 0, volatility: 0.2 }), /positive/);
 
 const premium = optionPrice({ type: 'call', spot: 100, strike: 105, years: 30 / 365,
   rate: 0.04, dividendYield: 0, volatility: 0.35 });
