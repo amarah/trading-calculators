@@ -22,6 +22,7 @@ assert.equal(api.earningsSummary({spot: 100, callPrice: 0, putPrice: 2, historic
 // Exercise the actual page handler so blank fields cannot be coerced to zero
 // before reaching core validation.
 const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+assert.equal((html.match(/aria-live="polite"/g) || []).length, 6);
 const script = html.match(/<script>([\s\S]*?)<\/script>/)[1];
 const fields = { gType: 'call', gS: '100', gK: '100', gPrem: '', gDays: '30', gR: '0', gQ: '0' };
 const elements = Object.fromEntries(Object.entries(fields).map(([id, value]) => [id, {value}]));
@@ -53,4 +54,14 @@ Object.assign(elements, {
 });
 vm.runInContext('calcPOP()', context);
 assert.match(elements.pResults.innerHTML, /Annualized IV is required/);
+
+const chartAttributes = {};
+elements.oChart = {
+  innerHTML: '',
+  setAttribute: (name, value) => { chartAttributes[name] = value; }
+};
+vm.runInContext("drawChart([[90, -25], [110, 75]], 'oChart')", context);
+assert.equal(chartAttributes.role, 'img');
+assert.match(chartAttributes['aria-label'], /stock prices.*P&L ranges/);
+assert.match(elements.oChart.innerHTML, /aria-hidden="true"/);
 console.log('input validation and page handler regression tests passed');
