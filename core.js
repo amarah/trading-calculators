@@ -77,16 +77,17 @@
   }
 
   function optionPayoff({ strategy, stockPrice, longStrike, longPremium,
-    shortStrike = 0, shortPremium = 0, contracts = 1 }) {
+    shortStrike = 0, shortPremium = 0, contracts = 1, contractMultiplier = 100 }) {
     stockPrice = finiteNumber(stockPrice, 'Stock price');
     longStrike = finiteNumber(longStrike, 'Long strike');
     longPremium = finiteNumber(longPremium, 'Long premium');
     contracts = finiteNumber(contracts, 'Contracts');
+    contractMultiplier = finiteNumber(contractMultiplier, 'Contract multiplier');
     if (!['call', 'put', 'bull', 'bear', 'straddle', 'strangle'].includes(strategy)) {
       throw new Error('Strategy is not supported.');
     }
     if (stockPrice < 0 || longStrike <= 0 || longPremium < 0 ||
-        contracts <= 0 || !Number.isInteger(contracts)) {
+        contracts <= 0 || !Number.isInteger(contracts) || contractMultiplier <= 0) {
       throw new Error('Prices and contracts must be valid nonnegative values; strikes and contracts must be positive.');
     }
     const needsShortStrike = ['bull', 'bear', 'strangle'].includes(strategy);
@@ -122,7 +123,34 @@
     } else {
       perShare = call(shortStrike) + put(longStrike) - longPremium - shortPremium;
     }
-    return perShare * 100 * contracts;
+    return perShare * contractMultiplier * contracts;
+  }
+
+  function multiLegPayoff({ stockPrice, legs, contracts = 1, contractMultiplier = 100 }) {
+    stockPrice = finiteNumber(stockPrice, 'Stock price');
+    contracts = finiteNumber(contracts, 'Contracts');
+    contractMultiplier = finiteNumber(contractMultiplier, 'Contract multiplier');
+    if (stockPrice < 0 || contracts <= 0 || !Number.isInteger(contracts) ||
+        contractMultiplier <= 0) {
+      throw new Error('Stock price cannot be negative; contracts and multiplier must be positive.');
+    }
+    if (!Array.isArray(legs) || !legs.length) throw new Error('Add at least one option leg.');
+    const perShare = legs.reduce((sum, leg, index) => {
+      const side = String(leg.side).toLowerCase();
+      const type = String(leg.type).toLowerCase();
+      const strike = finiteNumber(leg.strike, `Leg ${index + 1} strike`);
+      const premium = finiteNumber(leg.premium, `Leg ${index + 1} premium`);
+      if (!['long', 'short'].includes(side) || !['call', 'put'].includes(type)) {
+        throw new Error(`Leg ${index + 1} must have a valid side and option type.`);
+      }
+      if (strike <= 0 || premium < 0) {
+        throw new Error(`Leg ${index + 1} needs a positive strike and a nonnegative premium.`);
+      }
+      const intrinsic = type === 'call'
+        ? Math.max(stockPrice - strike, 0) : Math.max(strike - stockPrice, 0);
+      return sum + (side === 'long' ? 1 : -1) * (intrinsic - premium);
+    }, 0);
+    return perShare * contractMultiplier * contracts;
   }
 
   function erf(value) {
@@ -295,6 +323,6 @@
     return (lowVol + highVol) / 2;
   }
 
-  return { sizePosition, earningsSummary, optionPayoff, probabilityOfProfit,
-    findBreakevens, optionPrice, optionGreeks, impliedVolatility };
+  return { sizePosition, earningsSummary, optionPayoff, multiLegPayoff,
+    probabilityOfProfit, findBreakevens, optionPrice, optionGreeks, impliedVolatility };
 });

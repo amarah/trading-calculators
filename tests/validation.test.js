@@ -27,6 +27,7 @@ const script = html.match(/<script>([\s\S]*?)<\/script>/)[1];
 const fields = { gType: 'call', gS: '100', gK: '100', gPrem: '', gDays: '30', gR: '0', gQ: '0' };
 const elements = Object.fromEntries(Object.entries(fields).map(([id, value]) => [id, {value}]));
 elements.gResults = {innerHTML: ''};
+elements.oMult = {value: '100'};
 const context = vm.createContext({ TradingCalc: api, document: {
   getElementById: id => elements[id], querySelectorAll: () => []
 }});

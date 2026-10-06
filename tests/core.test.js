@@ -1,5 +1,6 @@
 const assert = require('node:assert/strict');
-const { sizePosition, earningsSummary, optionPayoff, probabilityOfProfit, findBreakevens,
+const { sizePosition, earningsSummary, optionPayoff, multiLegPayoff,
+  probabilityOfProfit, findBreakevens,
   optionPrice, optionGreeks, impliedVolatility } = require('../core.js');
 
 const capped = sizePosition({ account: 10_000, riskPercent: 1, entry: 100, stop: 99.90, target: 110 });
@@ -51,6 +52,16 @@ assert.throws(() => optionPayoff({ strategy: 'bull', stockPrice: 100, longStrike
   longPremium: 2, shortStrike: 100, shortPremium: 1 }), /long strike below/);
 assert.throws(() => optionPayoff({ strategy: 'unknown', stockPrice: 100,
   longStrike: 100, longPremium: 2 }), /not supported/);
+assert.equal(optionPayoff({ strategy: 'call', stockPrice: 110, longStrike: 100,
+  longPremium: 3, contracts: 2, contractMultiplier: 10 }), 140);
+assert.equal(multiLegPayoff({ stockPrice: 110, contracts: 2, contractMultiplier: 10,
+  legs: [
+    { side: 'long', type: 'call', strike: 100, premium: 4 },
+    { side: 'short', type: 'call', strike: 105, premium: 2 }
+  ] }), 60);
+assert.throws(() => multiLegPayoff({ stockPrice: 100, contractMultiplier: 0,
+  legs: [{ side: 'long', type: 'call', strike: 100, premium: 2 }] }), /positive/);
+assert.throws(() => multiLegPayoff({ stockPrice: 100, legs: [] }), /at least one/);
 
 const above = probabilityOfProfit({ direction: 'above', spot: 100, breakeven: 105,
   volatilityPercent: 30, days: 30 });
