@@ -76,6 +76,55 @@
     return { straddle, impliedMove, average, sampleStdDev, exceedance };
   }
 
+  function optionPayoff({ strategy, stockPrice, longStrike, longPremium,
+    shortStrike = 0, shortPremium = 0, contracts = 1 }) {
+    stockPrice = finiteNumber(stockPrice, 'Stock price');
+    longStrike = finiteNumber(longStrike, 'Long strike');
+    longPremium = finiteNumber(longPremium, 'Long premium');
+    contracts = finiteNumber(contracts, 'Contracts');
+    if (!['call', 'put', 'bull', 'bear', 'straddle', 'strangle'].includes(strategy)) {
+      throw new Error('Strategy is not supported.');
+    }
+    if (stockPrice < 0 || longStrike <= 0 || longPremium < 0 ||
+        contracts <= 0 || !Number.isInteger(contracts)) {
+      throw new Error('Prices and contracts must be valid nonnegative values; strikes and contracts must be positive.');
+    }
+    const needsShortStrike = ['bull', 'bear', 'strangle'].includes(strategy);
+    const needsShortPremium = ['bull', 'bear', 'straddle', 'strangle'].includes(strategy);
+    if (needsShortStrike) {
+      shortStrike = finiteNumber(shortStrike, 'Short strike');
+      if (shortStrike <= 0) throw new Error('Short strike must be greater than zero.');
+    }
+    if (needsShortPremium) {
+      shortPremium = finiteNumber(shortPremium, 'Second premium');
+      if (shortPremium < 0) throw new Error('Second premium cannot be negative.');
+    }
+    if (strategy === 'bull' && longStrike >= shortStrike) {
+      throw new Error('A bull call spread needs the long strike below the short strike.');
+    }
+    if (strategy === 'bear' && longStrike <= shortStrike) {
+      throw new Error('A bear put spread needs the long strike above the short strike.');
+    }
+    if (strategy === 'strangle' && longStrike >= shortStrike) {
+      throw new Error('A strangle needs the put strike below the call strike.');
+    }
+    const call = strike => Math.max(stockPrice - strike, 0);
+    const put = strike => Math.max(strike - stockPrice, 0);
+    let perShare;
+    if (strategy === 'call') perShare = call(longStrike) - longPremium;
+    else if (strategy === 'put') perShare = put(longStrike) - longPremium;
+    else if (strategy === 'bull') {
+      perShare = call(longStrike) - call(shortStrike) - (longPremium - shortPremium);
+    } else if (strategy === 'bear') {
+      perShare = put(longStrike) - put(shortStrike) - (longPremium - shortPremium);
+    } else if (strategy === 'straddle') {
+      perShare = call(longStrike) + put(longStrike) - longPremium - shortPremium;
+    } else {
+      perShare = call(shortStrike) + put(longStrike) - longPremium - shortPremium;
+    }
+    return perShare * 100 * contracts;
+  }
+
   function erf(value) {
     const sign = value < 0 ? -1 : 1;
     const x = Math.abs(value);
@@ -246,6 +295,6 @@
     return (lowVol + highVol) / 2;
   }
 
-  return { sizePosition, earningsSummary, probabilityOfProfit, findBreakevens,
-    optionPrice, optionGreeks, impliedVolatility };
+  return { sizePosition, earningsSummary, optionPayoff, probabilityOfProfit,
+    findBreakevens, optionPrice, optionGreeks, impliedVolatility };
 });

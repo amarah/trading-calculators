@@ -1,5 +1,5 @@
 const assert = require('node:assert/strict');
-const { sizePosition, earningsSummary, probabilityOfProfit, findBreakevens,
+const { sizePosition, earningsSummary, optionPayoff, probabilityOfProfit, findBreakevens,
   optionPrice, optionGreeks, impliedVolatility } = require('../core.js');
 
 const capped = sizePosition({ account: 10_000, riskPercent: 1, entry: 100, stop: 99.90, target: 110 });
@@ -34,6 +34,23 @@ const empirical = earningsSummary({ spot: 100, callPrice: 3, putPrice: 3, histor
 assert.equal(empirical.exceedance, 0.75);
 
 assert.throws(() => earningsSummary({ spot: 100, callPrice: -1, putPrice: 2 }), /cannot be negative/);
+
+assert.equal(optionPayoff({ strategy: 'call', stockPrice: 110, longStrike: 100,
+  longPremium: 3, contracts: 2 }), 1400);
+assert.equal(optionPayoff({ strategy: 'put', stockPrice: 90, longStrike: 100,
+  longPremium: 3 }), 700);
+assert.equal(optionPayoff({ strategy: 'bull', stockPrice: 120, longStrike: 100,
+  longPremium: 6, shortStrike: 110, shortPremium: 2 }), 600);
+assert.equal(optionPayoff({ strategy: 'bear', stockPrice: 80, longStrike: 100,
+  longPremium: 6, shortStrike: 90, shortPremium: 2 }), 600);
+assert.equal(optionPayoff({ strategy: 'straddle', stockPrice: 110, longStrike: 100,
+  longPremium: 4, shortPremium: 3 }), 300);
+assert.equal(optionPayoff({ strategy: 'strangle', stockPrice: 120, longStrike: 90,
+  longPremium: 2, shortStrike: 110, shortPremium: 3 }), 500);
+assert.throws(() => optionPayoff({ strategy: 'bull', stockPrice: 100, longStrike: 110,
+  longPremium: 2, shortStrike: 100, shortPremium: 1 }), /long strike below/);
+assert.throws(() => optionPayoff({ strategy: 'unknown', stockPrice: 100,
+  longStrike: 100, longPremium: 2 }), /not supported/);
 
 const above = probabilityOfProfit({ direction: 'above', spot: 100, breakeven: 105,
   volatilityPercent: 30, days: 30 });
