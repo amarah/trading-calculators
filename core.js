@@ -310,6 +310,13 @@
     }
     let lowVol = 0.0001;
     let highVol = 5;
+    if (premium <= lower) {
+      throw new Error('Premium must exceed the discounted intrinsic value to estimate positive implied volatility.');
+    }
+    const lowPrice = optionPrice({ type, spot, strike, years, rate, dividendYield, volatility: lowVol });
+    if (premium < lowPrice) {
+      throw new Error('Implied volatility is below the 0.01% search limit.');
+    }
     const highPrice = optionPrice({ type, spot, strike, years, rate, dividendYield, volatility: highVol });
     if (premium > highPrice + tolerance) {
       throw new Error('Implied volatility is above the 500% search limit.');
@@ -326,3 +333,4 @@
   return { sizePosition, earningsSummary, optionPayoff, multiLegPayoff,
     probabilityOfProfit, findBreakevens, optionPrice, optionGreeks, impliedVolatility };
 });
+

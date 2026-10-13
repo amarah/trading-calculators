@@ -34,6 +34,10 @@ const context = vm.createContext({ TradingCalc: api, document: {
 vm.runInContext(script.replace('addLeg();addLeg();calcOptions();calcRisk();calcEarnings();', ''), context);
 vm.runInContext('calcGreeks()', context);
 assert.match(elements.gResults.innerHTML, /Option premium is required/);
+Object.assign(elements.gPrem, {value: '0'});
+vm.runInContext('calcGreeks()', context);
+assert.match(elements.gResults.innerHTML, /positive implied volatility/);
+assert.doesNotMatch(elements.gResults.innerHTML, /Gamma/);
 
 Object.assign(elements, {
   oType: {value: 'call'}, oSpot: {value: ''}, oK1: {value: '100'}, oP1: {value: '2'},
@@ -66,3 +70,4 @@ assert.equal(chartAttributes.role, 'img');
 assert.match(chartAttributes['aria-label'], /stock prices.*P&L ranges/);
 assert.match(elements.oChart.innerHTML, /aria-hidden="true"/);
 console.log('input validation and page handler regression tests passed');
+

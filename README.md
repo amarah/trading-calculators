@@ -17,12 +17,18 @@ Open `index.html` in a browser. Everything runs on the client.
 
 ## Tests
 
-The shared position-sizing and earnings calculations have dependency-free Node tests:
+The calculations and page input handlers have dependency-free Node tests:
 
 ```bash
-node tests/core.test.js
+node --test tests/*.test.js
 ```
 
 ## Limits
 
+The IV solver searches annualized volatility from 0.01% through 500%. Premiums
+at or below discounted intrinsic value, or below the price at the minimum
+volatility, produce an input error instead of a misleading floor estimate.
+The page does not display Greeks for those quotes.
+
 Results omit commissions, taxes, slippage, liquidity, assignment risk, discrete dividends, and model error unless a calculator says otherwise. The position-sizing tool assumes whole shares and does not model margin. Probability estimates are model outputs, not forecasts.
+
