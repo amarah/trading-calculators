@@ -25,10 +25,16 @@ node --test tests/*.test.js
 
 ## Limits
 
+The probability calculator's one-standard-deviation price range uses the same
+drift and volatility as its probability estimate. It spans approximately the
+16th through 84th percentiles of the modeled terminal price, not a symmetric
+band around today's price.
+
 The IV solver searches annualized volatility from 0.01% through 500%. Premiums
 at or below discounted intrinsic value, or below the price at the minimum
 volatility, produce an input error instead of a misleading floor estimate.
 The page does not display Greeks for those quotes.
 
 Results omit commissions, taxes, slippage, liquidity, assignment risk, discrete dividends, and model error unless a calculator says otherwise. The position-sizing tool assumes whole shares and does not model margin. Probability estimates are model outputs, not forecasts.
+
 

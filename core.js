@@ -186,8 +186,8 @@
     return {
       probability,
       standardDeviation,
-      rangeLow: spot * Math.exp(-standardDeviation),
-      rangeHigh: spot * Math.exp(standardDeviation)
+      rangeLow: spot * Math.exp((drift - volatility ** 2 / 2) * years - standardDeviation),
+      rangeHigh: spot * Math.exp((drift - volatility ** 2 / 2) * years + standardDeviation)
     };
   }
 
@@ -333,4 +333,5 @@
   return { sizePosition, earningsSummary, optionPayoff, multiLegPayoff,
     probabilityOfProfit, findBreakevens, optionPrice, optionGreeks, impliedVolatility };
 });
+
 
