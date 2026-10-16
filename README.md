@@ -25,6 +25,11 @@ node --test tests/*.test.js
 
 ## Limits
 
+Payoff charts include each option strike within the displayed 50% to 150%
+price range. This preserves tight spreads and narrow profit zones when
+calculating plotted extrema and breakevens. Results still exclude prices
+outside that range and breakevens are rounded for display.
+
 The probability calculator's one-standard-deviation price range uses the same
 drift and volatility as its probability estimate. It spans approximately the
 16th through 84th percentiles of the modeled terminal price, not a symmetric
@@ -36,5 +41,3 @@ volatility, produce an input error instead of a misleading floor estimate.
 The page does not display Greeks for those quotes.
 
 Results omit commissions, taxes, slippage, liquidity, assignment risk, discrete dividends, and model error unless a calculator says otherwise. The position-sizing tool assumes whole shares and does not model margin. Probability estimates are model outputs, not forecasts.
-
-

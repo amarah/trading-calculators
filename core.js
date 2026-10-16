@@ -191,6 +191,25 @@
     };
   }
 
+  function payoffPriceGrid(spot, strikes = []) {
+    spot = finiteNumber(spot, 'Stock price');
+    if (spot <= 0) throw new Error('Stock price must be positive.');
+    const low = spot * 0.5;
+    const high = spot * 1.5;
+    if (!Number.isFinite(high) || low === high) {
+      throw new Error('Stock price is outside the supported chart range.');
+    }
+    const prices = Array.from({ length: 121 }, (_, i) => low + (high - low) * i / 120);
+    for (const value of strikes) {
+      const strike = finiteNumber(value, 'Strike');
+      if (strike <= 0) throw new Error('Strike must be positive.');
+      if (strike >= low && strike <= high) prices.push(strike);
+    }
+    // Expiration payoff slopes change at strikes. Keep every kink so narrow
+    // profit zones cannot disappear between uniformly spaced samples.
+    return [...new Set(prices)].sort((a, b) => a - b);
+  }
+
   function findBreakevens(points) {
     if (!Array.isArray(points) || points.length < 2) return [];
     const normalized = points.map(point => {
@@ -330,8 +349,6 @@
     return (lowVol + highVol) / 2;
   }
 
-  return { sizePosition, earningsSummary, optionPayoff, multiLegPayoff,
+  return { sizePosition, earningsSummary, optionPayoff, multiLegPayoff, payoffPriceGrid,
     probabilityOfProfit, findBreakevens, optionPrice, optionGreeks, impliedVolatility };
 });
-
-
