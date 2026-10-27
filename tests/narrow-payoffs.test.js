@@ -31,10 +31,10 @@ assert.match(elements.lResults.innerHTML,/100\.15, 100\.25/);
 assert.match(elements.lResults.innerHTML,/Highest plotted P&L<\/small><strong>\$5\.00/);
 
 const grid = api.payoffPriceGrid(100,[100.1,100.2,100.2,100.3,10,200]);
-assert.equal(grid[0],50);
-assert.equal(grid.at(-1),150);
+assert.ok(grid[0]<10);
+assert.ok(grid.at(-1)>200);
 assert.equal(grid.filter(x=>x===100.2).length,1);
-assert.ok(grid.includes(100.1) && grid.includes(100.3));
+assert.ok(grid.includes(10) && grid.includes(100.1) && grid.includes(100.3) && grid.includes(200));
 assert.ok(grid.every((x,i)=>i===0 || x>grid[i-1]));
 const points = grid.map(stockPrice=>[stockPrice,api.multiLegPayoff({stockPrice,legs})]);
 const roots = api.findBreakevens(points);
