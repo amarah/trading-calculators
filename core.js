@@ -183,12 +183,13 @@
     const z = (Math.log(breakeven / spot) - (drift - volatility ** 2 / 2) * years)
       / standardDeviation;
     const probability = direction === 'above' ? 1 - normalCdf(z) : normalCdf(z);
-    return {
+    const result = {
       probability,
       standardDeviation,
       rangeLow: spot * Math.exp((drift - volatility ** 2 / 2) * years - standardDeviation),
       rangeHigh: spot * Math.exp((drift - volatility ** 2 / 2) * years + standardDeviation)
     };
+    return result;
   }
 
   function payoffPriceGrid(spot, strikes = []) {
@@ -267,11 +268,15 @@
     const d1 = (Math.log(spot / strike) + (rate - dividendYield + volatility ** 2 / 2) * years)
       / (volatility * rootTime);
     const d2 = d1 - volatility * rootTime;
-    return type === 'call'
+    const price = type === 'call'
       ? spot * Math.exp(-dividendYield * years) * normalCdf(d1)
         - strike * Math.exp(-rate * years) * normalCdf(d2)
       : strike * Math.exp(-rate * years) * normalCdf(-d2)
         - spot * Math.exp(-dividendYield * years) * normalCdf(-d1);
+    if (!Number.isFinite(price) || price < 0) {
+      throw new Error('Inputs produce an option price outside the supported numeric range.');
+    }
+    return price;
   }
 
   function optionGreeks({ type, spot, strike, days, ratePercent = 0,
@@ -300,13 +305,17 @@
         + dividendYield * spot * spotDiscount * normalCdf(d1)
       : decay + rate * strike * strikeDiscount * normalCdf(-d2)
         - dividendYield * spot * spotDiscount * normalCdf(-d1);
-    return {
+    const result = {
       price: optionPrice({ type, spot, strike, years, rate, dividendYield, volatility }),
       delta: type === 'call' ? spotDiscount * normalCdf(d1) : -spotDiscount * normalCdf(-d1),
       gamma: spotDiscount * density / (spot * volatility * rootTime),
       theta,
       vega: spot * spotDiscount * density * rootTime
     };
+    if (Object.values(result).some(value => !Number.isFinite(value))) {
+      throw new Error('Inputs produce option values outside the supported numeric range.');
+    }
+    return result;
   }
 
   function impliedVolatility({ type, spot, strike, days, ratePercent = 0,
