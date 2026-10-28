@@ -189,6 +189,10 @@
       rangeLow: spot * Math.exp((drift - volatility ** 2 / 2) * years - standardDeviation),
       rangeHigh: spot * Math.exp((drift - volatility ** 2 / 2) * years + standardDeviation)
     };
+    if (!Number.isFinite(result.rangeLow) || !Number.isFinite(result.rangeHigh) ||
+        result.rangeLow <= 0 || result.rangeHigh <= 0) {
+      throw new Error('Inputs produce a price range outside the supported numeric range.');
+    }
     return result;
   }
 
