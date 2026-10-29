@@ -35,6 +35,8 @@ const empirical = earningsSummary({ spot: 100, callPrice: 3, putPrice: 3, histor
 assert.equal(empirical.exceedance, 0.75);
 
 assert.throws(() => earningsSummary({ spot: 100, callPrice: -1, putPrice: 2 }), /cannot be negative/);
+assert.throws(() => earningsSummary({ spot: 5, callPrice: 3, putPrice: 2 }), /less than/);
+assert.throws(() => earningsSummary({ spot: 5, callPrice: 4, putPrice: 2 }), /less than/);
 
 assert.equal(optionPayoff({ strategy: 'call', stockPrice: 110, longStrike: 100,
   longPremium: 3, contracts: 2 }), 1400);

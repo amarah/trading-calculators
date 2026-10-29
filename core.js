@@ -66,6 +66,9 @@
       .map(value => finiteNumber(value, 'Historical move'));
     if (moves.some(value => value < 0)) throw new Error('Historical moves cannot be negative.');
     const straddle = callPrice + putPrice;
+    if (straddle >= spot) {
+      throw new Error('Combined option premium must be less than the stock price.');
+    }
     const impliedMove = straddle / spot;
     if (!moves.length) return { straddle, impliedMove, average: null, sampleStdDev: null, exceedance: null };
     const average = moves.reduce((sum, value) => sum + value, 0) / moves.length;
