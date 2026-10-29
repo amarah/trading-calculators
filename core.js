@@ -138,7 +138,10 @@
       throw new Error('Stock price cannot be negative; contracts and multiplier must be positive.');
     }
     if (!Array.isArray(legs) || !legs.length) throw new Error('Add at least one option leg.');
-    const perShare = legs.reduce((sum, leg, index) => {
+    const perShare = Array.from(legs).reduce((sum, leg, index) => {
+      if (!leg || typeof leg !== 'object' || Array.isArray(leg)) {
+        throw new Error(`Leg ${index + 1} must be an option leg.`);
+      }
       const side = String(leg.side).toLowerCase();
       const type = String(leg.type).toLowerCase();
       const strike = finiteNumber(leg.strike, `Leg ${index + 1} strike`);

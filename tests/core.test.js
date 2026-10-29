@@ -64,6 +64,8 @@ assert.equal(multiLegPayoff({ stockPrice: 110, contracts: 2, contractMultiplier:
 assert.throws(() => multiLegPayoff({ stockPrice: 100, contractMultiplier: 0,
   legs: [{ side: 'long', type: 'call', strike: 100, premium: 2 }] }), /positive/);
 assert.throws(() => multiLegPayoff({ stockPrice: 100, legs: [] }), /at least one/);
+assert.throws(() => multiLegPayoff({ stockPrice: 100, legs: [null] }), /Leg 1 must/);
+assert.throws(() => multiLegPayoff({ stockPrice: 100, legs: Array(1) }), /Leg 1 must/);
 
 const above = probabilityOfProfit({ direction: 'above', spot: 100, breakeven: 105,
   volatilityPercent: 30, days: 30 });
