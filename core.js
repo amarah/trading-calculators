@@ -126,7 +126,11 @@
     } else {
       perShare = call(shortStrike) + put(longStrike) - longPremium - shortPremium;
     }
-    return perShare * contractMultiplier * contracts;
+    const payoff = perShare * contractMultiplier * contracts;
+    if (!Number.isFinite(payoff)) {
+      throw new Error('Inputs produce a payoff outside the supported numeric range.');
+    }
+    return payoff;
   }
 
   function multiLegPayoff({ stockPrice, legs, contracts = 1, contractMultiplier = 100 }) {
@@ -156,7 +160,11 @@
         ? Math.max(stockPrice - strike, 0) : Math.max(strike - stockPrice, 0);
       return sum + (side === 'long' ? 1 : -1) * (intrinsic - premium);
     }, 0);
-    return perShare * contractMultiplier * contracts;
+    const payoff = perShare * contractMultiplier * contracts;
+    if (!Number.isFinite(payoff)) {
+      throw new Error('Inputs produce a payoff outside the supported numeric range.');
+    }
+    return payoff;
   }
 
   function erf(value) {
