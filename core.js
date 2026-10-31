@@ -40,7 +40,7 @@
     const riskShares = Math.floor(riskBudget / riskPerShare);
     const allocationShares = Math.floor(allocationBudget / entry);
     const shares = Math.max(0, Math.min(riskShares, allocationShares));
-    return {
+    const result = {
       riskBudget,
       allocationBudget,
       riskShares,
@@ -52,6 +52,11 @@
       rewardRisk: Math.abs(target - entry) / riskPerShare,
       constraint: allocationShares < riskShares ? 'Buying power' : 'Risk limit'
     };
+    if (Object.values(result).some(value =>
+      typeof value === 'number' && !Number.isFinite(value))) {
+      throw new Error('Inputs produce position values outside the supported numeric range.');
+    }
+    return result;
   }
 
   function earningsSummary({ spot, callPrice, putPrice, historicalMoves = [] }) {
