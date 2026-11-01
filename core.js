@@ -81,7 +81,12 @@
       ? Math.sqrt(moves.reduce((sum, value) => sum + (value - average) ** 2, 0) / (moves.length - 1)) / 100
       : null;
     const exceedance = moves.filter(value => value / 100 >= impliedMove).length / moves.length;
-    return { straddle, impliedMove, average, sampleStdDev, exceedance };
+    const result = { straddle, impliedMove, average, sampleStdDev, exceedance };
+    if (Object.values(result).some(value =>
+      typeof value === 'number' && !Number.isFinite(value))) {
+      throw new Error('Inputs produce earnings statistics outside the supported numeric range.');
+    }
+    return result;
   }
 
   function optionPayoff({ strategy, stockPrice, longStrike, longPremium,
