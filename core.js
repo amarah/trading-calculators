@@ -261,6 +261,9 @@
     const roots = [];
     const isZero = value => Math.abs(value) <= 1e-9;
     const add = value => {
+      if (!Number.isFinite(value)) {
+        throw new Error('Payoff points produce a breakeven outside the supported numeric range.');
+      }
       const previous = roots[roots.length - 1];
       if (previous === undefined || Math.abs(value - previous) > 1e-8 * Math.max(1, Math.abs(value))) {
         roots.push(value);
