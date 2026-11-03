@@ -33,4 +33,17 @@ for (const [handler, spot, chart, result] of [
   assert.match(elements[chart].innerHTML,/<svg/);
   assert.doesNotMatch(elements[chart].innerHTML,/Infinity|NaN/);
 }
-console.log('Payoff charts clear invalid results and support sub-cent prices');
+
+for (const points of [
+  [[90, 25], [110, 75]],
+  [[90, -75], [110, -25]],
+]) {
+  vm.runInContext(`drawChart(${JSON.stringify(points)}, 'oChart')`, context, {timeout:1000});
+  const zeroLine = elements.oChart.innerHTML.match(/<line[^>]* y1="([^"]+)"/);
+  assert.ok(zeroLine, 'chart should include a zero-profit line');
+  assert.ok(Number(zeroLine[1]) >= 25 && Number(zeroLine[1]) <= 215,
+    'zero-profit line should stay inside the plotted area');
+}
+
+assert.match(elements.oChart.attrs['aria-label'], /P&L ranges from -\$75\.00 to -\$25\.00/);
+console.log('Payoff charts clear invalid results, support sub-cent prices, and keep zero visible');
