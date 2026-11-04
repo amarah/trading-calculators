@@ -66,7 +66,10 @@
     if (spot <= 0 || callPrice < 0 || putPrice < 0) {
       throw new Error('Stock price must be positive; option prices cannot be negative.');
     }
-    const moves = historicalMoves
+    if (!Array.isArray(historicalMoves)) {
+      throw new Error('Historical moves must be supplied as a list.');
+    }
+    const moves = Array.from(historicalMoves)
       .filter(value => String(value).trim() !== '')
       .map(value => finiteNumber(value, 'Historical move'));
     if (moves.some(value => value < 0)) throw new Error('Historical moves cannot be negative.');
@@ -223,7 +226,8 @@
   function payoffPriceGrid(spot, strikes = []) {
     spot = finiteNumber(spot, 'Stock price');
     if (spot <= 0) throw new Error('Stock price must be positive.');
-    const normalizedStrikes = strikes.map(value => {
+    if (!Array.isArray(strikes)) throw new Error('Strikes must be supplied as a list.');
+    const normalizedStrikes = Array.from(strikes, value => {
       const strike = finiteNumber(value, 'Strike');
       if (strike <= 0) throw new Error('Strike must be positive.');
       return strike;
@@ -245,8 +249,9 @@
   }
 
   function findBreakevens(points) {
-    if (!Array.isArray(points) || points.length < 2) return [];
-    const normalized = points.map(point => {
+    if (!Array.isArray(points)) throw new Error('Payoff points must be supplied as a list.');
+    if (points.length < 2) return [];
+    const normalized = Array.from(points, point => {
       if (!Array.isArray(point) || point.length < 2 ||
           !Number.isFinite(point[0]) || !Number.isFinite(point[1])) {
         throw new Error('Payoff points must contain finite price and P&L values.');
