@@ -163,15 +163,17 @@
       const type = String(leg.type).toLowerCase();
       const strike = finiteNumber(leg.strike, `Leg ${index + 1} strike`);
       const premium = finiteNumber(leg.premium, `Leg ${index + 1} premium`);
+      const quantity = leg.quantity === undefined
+        ? 1 : finiteNumber(leg.quantity, `Leg ${index + 1} quantity`);
       if (!['long', 'short'].includes(side) || !['call', 'put'].includes(type)) {
         throw new Error(`Leg ${index + 1} must have a valid side and option type.`);
       }
-      if (strike <= 0 || premium < 0) {
-        throw new Error(`Leg ${index + 1} needs a positive strike and a nonnegative premium.`);
+      if (strike <= 0 || premium < 0 || quantity <= 0 || !Number.isInteger(quantity)) {
+        throw new Error(`Leg ${index + 1} needs a positive strike, a nonnegative premium, and a positive whole-number quantity.`);
       }
       const intrinsic = type === 'call'
         ? Math.max(stockPrice - strike, 0) : Math.max(strike - stockPrice, 0);
-      return sum + (side === 'long' ? 1 : -1) * (intrinsic - premium);
+      return sum + (side === 'long' ? 1 : -1) * quantity * (intrinsic - premium);
     }, 0);
     const payoff = perShare * contractMultiplier * contracts;
     if (!Number.isFinite(payoff)) {
