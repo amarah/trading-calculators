@@ -32,5 +32,8 @@ assert.throws(() => multiLegPayoff({
 const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
 assert.match(html, /class="lq"[^>]+aria-label="Leg \$\{n\}: Quantity"/);
 assert.match(html, /quantity:r\.querySelector\('\.lq'\)\.value/);
+assert.match(html, /<label for="lQty">Strategy units<\/label>/);
+assert.match(html, /total contracts equal strategy units multiplied by that leg's quantity/);
+assert.doesNotMatch(html, /Contracts per leg/);
 
 console.log('per-leg quantity checks passed');

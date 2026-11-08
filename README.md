@@ -9,7 +9,7 @@ A small collection of browser-based tools for practical trading analysis. No bac
 - **Earnings Move Calculator:** estimates the move implied by an ATM straddle. Historical moves are optional; when supplied, the calculator compares the implied move with the sample.
 - **Greeks & IV Calculator:** solves implied volatility and reports Black-Scholes price, delta, gamma, theta, and vega.
 - **Probability of Profit Calculator:** estimates the chance of finishing above or below one breakeven under a lognormal model.
-- **Multi-Leg Builder:** combines custom long and short call or put legs and charts expiration P&L. Per-leg quantities support ratio spreads and other uneven structures, and the contract multiplier is configurable.
+- **Multi-Leg Builder:** combines custom long and short call or put legs and charts expiration P&L. Per-leg quantities support ratio spreads and other uneven structures. Strategy units scale the complete structure, so a two-unit 1-by-2 spread uses two contracts on the first leg and four on the second. The contract multiplier is configurable.
 
 ## Run locally
 
