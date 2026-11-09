@@ -50,7 +50,8 @@
       actualRisk: shares * riskPerShare,
       targetPnL: shares * Math.abs(target - entry),
       rewardRisk: Math.abs(target - entry) / riskPerShare,
-      constraint: allocationShares < riskShares ? 'Buying power' : 'Risk limit'
+      constraint: allocationShares === riskShares ? 'Both limits'
+        : allocationShares < riskShares ? 'Buying power' : 'Risk limit'
     };
     if (Object.values(result).some(value =>
       typeof value === 'number' && !Number.isFinite(value))) {

@@ -15,6 +15,11 @@ assert.equal(riskLimited.shares, 20);
 assert.equal(riskLimited.actualRisk, 100);
 assert.equal(riskLimited.constraint, 'Risk limit');
 
+const equallyLimited = sizePosition({ account: 10_000, riskPercent: 1, entry: 100, stop: 99, target: 110 });
+assert.equal(equallyLimited.riskShares, 100);
+assert.equal(equallyLimited.allocationShares, 100);
+assert.equal(equallyLimited.constraint, 'Both limits');
+
 const halfAccount = sizePosition({ account: 10_000, riskPercent: 10, entry: 100, stop: 99, target: 110, maxAllocationPercent: 50 });
 assert.equal(halfAccount.shares, 50);
 assert.equal(halfAccount.capitalUsed, 5000);
