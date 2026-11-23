@@ -104,8 +104,9 @@
       throw new Error('Strategy is not supported.');
     }
     if (stockPrice < 0 || longStrike <= 0 || longPremium < 0 ||
-        contracts <= 0 || !Number.isInteger(contracts) || contractMultiplier <= 0) {
-      throw new Error('Prices and contracts must be valid nonnegative values; strikes and contracts must be positive.');
+        contracts <= 0 || !Number.isInteger(contracts) || contractMultiplier <= 0 ||
+        !Number.isInteger(contractMultiplier)) {
+      throw new Error('Prices must be valid nonnegative values; strikes, contracts, and contract multiplier must be positive whole numbers.');
     }
     const needsShortStrike = ['bull', 'bear', 'strangle'].includes(strategy);
     const needsShortPremium = ['bull', 'bear', 'straddle', 'strangle'].includes(strategy);
@@ -152,8 +153,8 @@
     contracts = finiteNumber(contracts, 'Contracts');
     contractMultiplier = finiteNumber(contractMultiplier, 'Contract multiplier');
     if (stockPrice < 0 || contracts <= 0 || !Number.isInteger(contracts) ||
-        contractMultiplier <= 0) {
-      throw new Error('Stock price cannot be negative; contracts and multiplier must be positive.');
+        contractMultiplier <= 0 || !Number.isInteger(contractMultiplier)) {
+      throw new Error('Stock price cannot be negative; contracts and contract multiplier must be positive whole numbers.');
     }
     if (!Array.isArray(legs) || !legs.length) throw new Error('Add at least one option leg.');
     const perShare = Array.from(legs).reduce((sum, leg, index) => {
