@@ -34,7 +34,8 @@ displayed range, and breakevens are rounded for display.
 The probability calculator's one-standard-deviation price range uses the same
 drift and volatility as its probability estimate. It spans approximately the
 16th through 84th percentiles of the modeled terminal price, not a symmetric
-band around today's price.
+band around today's price. Expected drift is an annualized percentage, matching
+the annualized IV input, and is scaled to the selected days to expiry.
 
 The IV solver searches annualized volatility from 0.01% through 500%. Premiums
 at or below discounted intrinsic value, or below the price at the minimum
